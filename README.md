@@ -1,6 +1,3 @@
-# cosmic-logo-animations
-Ultra-lightweight, 60 fps SVG stroke + rainbow comet particle logo animation
-
 # Cosmic Logo Animations 🌌
 
 60 fps SVG stroke draw + rainbow comet particle system — built from scratch with zero dependencies.
