@@ -1,0 +1,7 @@
+# After pushing:
+git add .
+git commit -m "Launch cosmic logo with rainbow comets"
+git push origin main
+
+# Then go to https://vercel.app → connect GitHub → deploy in one click
+# Or use Vercel/Netlify directly
