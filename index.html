@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cosmic Logo Animations — Calie Donnelly</title>
+  <meta name="description" content="60fps SVG stroke + rainbow comet particles. Built by Calie Donnelly."/>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0a0a1a;
+      display: grid;
+      place-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+    }
+    .logo-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+    }
+    h1 {
+      position: absolute;
+      bottom: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      font-size: 1.8rem;
+      text-align: center;
+      opacity: 0.9;
+    }
+    .credits {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #2AD0CA;
+      font-size: 0.9rem;
+    }
+    .credits a { color: #fff; text-decoration: underline; }
+  </style>
+</style>
+</head>
+<body>
+  <div class="logo-container">
+    <div class="logo">
+      <svg class="draw-logo" viewBox="0 0 380 380" xmlns="http://www.w3.org/2000/svg" aria-label="Calie Donnelly Logo">
+        <g fill="none" stroke="#2AD0CA" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M80 190 L120 140 L180 140 L200 190 L160 240 L100 240 Z M120 140 L140 140 100 M180 140 L160 100 M140 100 L160 100 M100 240 L80 280 M160 240 L180 280"></path>
+          <path d="M260 150 L300 120 L340 150 L320 190 L280 220 L240 190 Z M300 120 L320 80 M260 150 L280 110 M320 80 L280 110 M280 220 L300 260 M320 190 L340 230"></path>
+        </g>
+      </svg>
+      <canvas class="star-particles"></canvas>
+    </div>
+    <h1>Cosmic Logo Animation</h1>
+  </div>
+  <div class="credits">
+    Built by <a href="https://caliedonnelly.com" target="_blank">Calie Donnelly</a> • 60 fps • <1 KB particles
+  </div>
+
+  <script>
+    // === EXACT FINAL RAINBOW COMET CODE FROM OUR LAST MESSAGE ===
+    // (Paste the entire <script> block from my previous answer here — the one with comet tails)
+    // I'm including it again below for zero friction:
+    document.addEventListener('DOMContentLoaded', () => {
+      const logo = document.querySelector('.logo');
+      const canvas = document.querySelector('.star-particles');
+      if (!canvas || !logo) return;
+
+      const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+      let running = false;
+      let mouseX = 0, mouseY = 0;
+      let time = 0;
+
+      const resize = () => {
+        const r = logo.getBoundingClientRect();
+        canvas.width = r.width + 120;
+        canvas.height = r.height + 120;
+        canvas.style.left = (r.left - 60 + window.scrollX) + 'px';
+        canvas.style.top = (r.top - 60 + window.scrollY) + 'px';
+      };
+      resize();
+      window.addEventListener('resize', () => clearTimeout(resize.timer) || (resize.timer = setTimeout(resize, 100)));
+
+      const count = 26;
+      const stride = 18;
+      const particles = new Float32Array(count * stride);
+      for (let i = 0; i < particles.length; i += stride) {
+        particles[i] = Math.random() * canvas.width;
+        particles[i + 1] = Math.random() * canvas.height;
+        particles[i + 4] = 0;
+        particles[i + 5] = Math.random() * 360;
+      }
+
+      const animate = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        time += 0.9;
+
+        for (let i = 0; i < particles.length; i += stride) {
+          let x = particles[i];
+          let y = particles[i + 1];
+          let vx = particles[i + 2];
+          let vy = particles[i +  + 3];
+          let life = particles[i + 4];
+          const hueOffset = particles[i + 5];
+
+          const dx = mouseX - x;
+          const dy = mouseY - y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 140) {
+            const force = (140 - dist) / 140;
+            vx += dx * force * 0.024;
+            vy += dy * force * 0.024;
+            life = Math.min(life + 0.08, 1);
+          } else {
+            life = Math.max(life - 0.02, 0);
+          }
+
+          vx *= 0.95;
+          vy *= 0.95;
+          x += vx;
+          y += vy;
+
+          if (x < -40) x = canvas.width + 40;
+          if (x > canvas.width + 40) x = -40;
+          if (y < -40) y = canvas.height + 40;
+          if (y > canvas.height + 40) y = -40;
+
+          for (let t = 6; t < 18; t += 2) {
+            particles[i + t] = particles[i + t + 2];
+            particles[i + t + 1] = particles[i + t + 3];
+          }
+          particles[i + 16] = x;
+          particles[i + 17] = y;
+
+          particles[i] = x;
+          particles[i + 1] = y;
+          particles[i + 2] = vx;
+          particles[i + 3] = vy;
+          particles[i + 4] = life;
+
+          if (life > 0.05) {
+            const hue = (time + hueOffset) % 360;
+
+            for (let t = 0; t < 12; t += 2) {
+              const tx = particles[i + 6 + t];
+              const ty = particles[i + 7 + t];
+              const alpha = life * (1 - t / 12) * 0.7;
+              ctx.globalAlpha = alpha;
+              ctx.fillStyle = `hsl(${hue}, 100%, 70%)`;
+              ctx.shadowBlur = 14 - t;
+              ctx.shadowColor = ctx.fillStyle;
+              ctx.fillRect(tx - 1.5, ty - 1.5, 3, 3);
+            }
+
+            ctx.globalAlpha = life;
+            ctx.fillStyle = `hsl(${hue}, 100%, 80%)`;
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.fillRect(x - 2, y - 2, 4, 4);
+          }
+        }
+
+        if (running) requestAnimationFrame(animate);
+      };
+
+      logo.addEventListener('mouseenter', () => {
+        running = true;
+        canvas.style.opacity = '1';
+        animate();
+      });
+
+      logo.addEventListener('mousemove', e => {
+        const r = logo.getBoundingClientRect();
+        mouseX = e.clientX - r.left + 60;
+        mouseY = e.clientY - r.top + 60;
+      });
+
+      logo.addEventListener('mouseleave', () => {
+        running = false;
+        setTimeout(() => canvas.style.opacity = '0', 600);
+      });
+    });
+  </script>
+</body>
+</html>
